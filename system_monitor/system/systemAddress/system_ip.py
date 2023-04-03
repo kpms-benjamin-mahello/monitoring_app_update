@@ -6,7 +6,7 @@ import platform
 my_os = platform.system()
 
 # read config,json file
-with open('system_monitor/config.json') as f:
+with open('config.json') as f:
     data = json.load(f)
 
 intf = data['SystemMonitor']['ethernetPort']

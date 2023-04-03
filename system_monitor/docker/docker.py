@@ -1,13 +1,10 @@
-# imports
 import csv
 import subprocess
 import shlex
-import logging
 import os
-import shutil
+import logging
 
 
-# Function
 def running_containers():
     # specify the encoding of the CSV data
     encoding = 'ascii'
@@ -33,12 +30,13 @@ def running_containers():
     edits1 = csv.reader(output1.splitlines())
     edits2 = csv.reader(output2.splitlines())
 
-    # Create a CSV file in append mode
-    with open('docker.csv', 'w+', newline='', encoding='utf-8') as my_file:
+    # Create a temporary file in write mode
+    with open('docker_temp.csv', 'w', newline='', encoding='utf-8') as my_file:
         # using csv.writer
         writer = csv.writer(my_file, delimiter=',')
-        # write the Header in CSV
-        # writer.writerow(header)
+
+        # Write the header row
+        # writer.writerow(['Name', 'Container ID', 'Status', 'CPU Load', 'RAM Usage', 'Container Version'])
 
         # check rows in output1
         for row in edits1:
@@ -62,8 +60,9 @@ def running_containers():
             new_csv_data = list(info_data)
 
             # Write a CSV docker file
-            writer.writerows([new_csv_data])
+            writer.writerow(new_csv_data)
             ids = [container_id]
+
             ############################################################################################################
             # create logs
 
@@ -84,4 +83,7 @@ def running_containers():
                 logging.warning(log)
                 logging.error(log)
                 logging.exception(log)
+
+    # Replace the original CSV file with the temporary file
+    os.replace('docker_temp.csv', 'docker.csv')
 

@@ -1,21 +1,27 @@
+#!/usr/bin/python3
+
 import json
 import platform
 import psutil
 import time
 from datetime import datetime
 import csv
+import subprocess
 
 from system_monitor.system.systemAddress import system_ip
 from system_monitor.system.systemAddress.system_ip import check_ip
 
-# read config,json file
-with open('system_monitor/config.json') as f:
-    data = json.load(f)
 
-disk_space = data['SystemMonitor']['disk']
 
 
 def system():
+
+    # read config,json file
+    with open('config.json') as f:
+        data = json.load(f)
+
+        mounting_point = data['SystemMonitor']['disk']
+        
     # Computer name
     computer_name = platform.node()
 
@@ -60,10 +66,29 @@ def system():
             bytes /= factor
 
     used_ram = unit(ram.used)
+    
+    
+    # Disk Usage
+
+    result = subprocess.run(["df", "-h"], stdout=subprocess.PIPE)
+    output = result.stdout.decode("utf-8")
+
+    device_line = [line for line in output.split("\n") if mounting_point in line][0]
+    available_space = device_line.split()[3]
+
+    if available_space[-1] == 'G':
+        available_space = available_space + "B"
+    elif available_space[-1] == 'T':
+        available_space = available_space + "B"
+    elif available_space[-1] == 'M':
+        available_space = available_space + "B"
+    elif available_space[-1] == 'K':
+        available_space = available_space + "B"
+
 
     # Write data in csv
 
-    data = [computer_name, system_local_time, uptime_used_formatted, my_ip, my_cpu_load, used_ram, disk_space, version]
+    data = [computer_name, system_local_time, uptime_used_formatted, my_ip, my_cpu_load, used_ram, available_space, version]
 
     # header = ['Computer name', ' System Time', 'Uptime', 'IP Address', 'Cpu Load','Ram Usage', 'Disk space', 'Os Version']
 

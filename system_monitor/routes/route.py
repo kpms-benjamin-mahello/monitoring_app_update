@@ -1,13 +1,17 @@
-from flask import render_template, jsonify, redirect, url_for
+from flask import render_template, jsonify, redirect, url_for, request, flash
 import werkzeug
 from system_monitor import app, api, Resource
 import json
+import subprocess
+import os
 
 from system_monitor.system.systemAddress import system_ip
 import pandas as pd
 
-with open('system_monitor/config.json') as f:
+with open('config.json') as f:
     data = json.load(f)
+
+app.secret_key = 'secret_key'
 
 # /systemdata
 system_path = 'system_data.csv'
@@ -65,12 +69,6 @@ def help_page():
 def docker_help_page():
     return render_template('docker_help.html', title='Docker Help Page')
 
-
-@app.route("/config")
-def config_page():
-    return render_template('config.html', title='Config')
-
-
 @app.route("/log")
 def Log_page():
     logs = []
@@ -84,12 +82,48 @@ def Log_page():
     return render_template('log.html', logs=logs)
 
 
+
 # Reboot the system
-@app.route("/rebooting")
+@app.route("/reboot", methods=['GET', 'POST'])
 def reboot():
-    # subprocess.run("sudo reboot", shell=True, check=True)
-    # subprocess.run("sudo systemctl reboot", shell=True, check=True)
-    return render_template('reboot.html')
+    password = "merlin#0"
+    subprocess.run(f"echo {password} | sudo -S reboot", shell=True, check=True)
+    return "System is rebooting", 200
+
+
+
+@app.route('/config', methods=['GET', 'POST'])
+def config():
+    if request.method == 'POST':
+        with open('config.json', 'r') as f:
+            config_data = json.load(f)
+
+        config_data['SystemMonitor']['interval_time_sec'] = int(request.form['interval_time_sec'])
+        config_data['SystemMonitor']['ethernetPort'] = request.form['ethernetPort']
+        config_data['SystemMonitor']['disk'] = request.form['disk']
+
+        config_data['MQTT']['MQTTBroker'] = request.form['MQTTBroker']
+        config_data['MQTT']['mqtt_user'] = request.form['mqtt_user']
+        config_data['MQTT']['mqtt_password'] = request.form['mqtt_password']
+        config_data['MQTT']['mqtt_port'] = request.form['mqtt_port']
+        config_data['MQTT']['sendDocker'] = request.form.get('sendDocker') == 'True'
+        config_data['MQTT']['sendSystem'] = request.form.get('sendSystem') == 'True'
+        config_data['MQTT']['sendAsMQTT'] = request.form.get('sendAsMQTT') == 'True'
+
+        config_data['SYSTEM_INFO']['version'] = request.form['version']
+        config_data['SYSTEM_INFO']['BA'] = request.form['BA']
+        config_data['SYSTEM_INFO']['MASCHINE'] = request.form['MASCHINE']
+
+        with open('config.json', 'w') as f:
+            json.dump(config_data, f, indent=4)
+
+        flash('Config file updated successfully.', 'success')
+        return redirect(url_for('home_page'))
+
+    with open('config.json', 'r') as f:
+        config_data = json.load(f)
+
+    return render_template('config.html', config=config_data)
 
 
 # Error Handler

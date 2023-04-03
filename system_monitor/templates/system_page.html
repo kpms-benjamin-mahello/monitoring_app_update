@@ -7,18 +7,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
-     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main/main.css')}}">
+     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='Main/main.css')}}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="static/help/csh.js"></script>
      <script type = "text/JavaScript">
-         <!--
             function AutoRefresh( t ) {
                setTimeout("location.reload(true);", t);
             }
-         //-->
       </script>
 
 
@@ -42,15 +41,18 @@
         <span class="icon-bar"></span>
       </button>
       <div class="navbar-brand">
-          <img src="/static/images/Koerber_Logo_RGB_White5.svg" alt="" width="43" height="43">
+          <img src="/static/Images/Koerber_Logo_RGB_White5.svg" alt="" width="43" height="43">
         </div>
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
         <h3 style="color:white;">System Monitor</h3>
       </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li><a href="{{ url_for('help_page')}}"><span class="glyphicon glyphicon-question-sign"></span></a></li>
+       <ul class="nav navbar-nav navbar-right" style="padding-right: 20px">
+        <li><a href="#"
+               onclick="MadCap.OpenHelp('null', 'null', 'System', 'null' );"><span
+                class="glyphicon glyphicon-question-sign"></span> Help Page</a>
+        </li>
       <li><a href="#"><span class="glyphicon glyphicon-log-in"></span></a></li>
     </ul>
   </div>
@@ -63,10 +65,9 @@
                 <div class="btn-group-vertical">
                   <a class="btn btn-default well well-sm" href="{{ url_for('my_system')}}" role="button">System</a>
                     <a class="btn btn-default well well-sm" href="{{ url_for('my_docker')}}" role="button">Docker</a>
-                   <a href="#" class="btn btn-default well well-sm">Reboot System</a>
+					<a class="btn btn-default well well-sm" href="{{ url_for('reboot')}}" id="reboot-button" role="button">Reboot</a>
 
 
-                <!-- <a class="btn btn-default well well-sm" href="{{ url_for('reboot')}}" role="button">Reboot</a> -->
                 </div>
             </div>
 
@@ -111,17 +112,26 @@
 
 </body>
 <script>
-  function rebootSystem() {
-    // Use the 'reboot' command to reboot the system
-    const child = require('child_process').exec('reboot');
-
-    child.stdout.on('data', function(data) {
-      console.log(data);
+  document.getElementById("reboot-button").addEventListener("click", function() {
+    fetch("/reboot", {
+      method: "POST",
+    })
+    .then(function(response) {
+      if (response.ok) {
+        alert("System is rebooting");
+      } else {
+        alert("Error: " + response.statusText);
+      }
     });
-  }
+  });
 </script>
-
-
+<!--
+<script>
+    $(document).ready( function () {
+    $('#sortTable').DataTable();
+});
+</script>
+-->
 </html>
 
 
