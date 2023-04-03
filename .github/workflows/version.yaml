@@ -1,0 +1,37 @@
+name: Schemantic Versioning
+on:
+  push:
+    branches:
+      - master
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Generate Schemantic version
+        id: generate_version
+        uses: paulhatch/semantic-version@v4.0.2
+        with:
+          # The prefix to use to identify tags
+          tag_prefix: "v"
+          # A string which, if present in a git commit, indicates that a change represents a
+          # major (breaking) change, supports regular expressions wrapped with '/'
+          major_pattern: "(MAJOR)"
+          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
+          minor_pattern: "(MINOR)"
+          # Same as above except indicating a patch change, supports regular expressions wrapped with '/'
+          patch_pattern: "(PATCH)"
+          # A string to determine the format of the version output
+          format: "${major}.${minor}.${patch}+${increment}"
+          
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: ${{ steps.generate_version.outputs.version_tag }}
+          tag_prefix: ""
